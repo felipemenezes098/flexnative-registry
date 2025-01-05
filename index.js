@@ -4,10 +4,20 @@ import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
 
-// URL passada como argumento para o CLI
-const url = process.argv[2];
-if (!url) {
-  console.error("❌ Please provide the URL of the component JSON.");
+// Captura os argumentos
+const args = process.argv.slice(2);
+const command = args[0];
+const url = args[1];
+
+if (command !== "add") {
+  console.error("❌ Invalid command. Use 'add' followed by the component URL.");
+  process.exit(1);
+}
+
+if (!url || !/^https?:\/\/[\w.-]+/.test(url)) {
+  console.error(
+    "❌ Please provide a valid URL (e.g., https://registry.flexnative.com/c/accordion.json)."
+  );
   process.exit(1);
 }
 
@@ -17,24 +27,20 @@ async function addComponent(url) {
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.error("❌ Failed to fetch the component.");
+      console.error(
+        `❌ Failed to fetch the component. HTTP Status: ${response.status}`
+      );
       process.exit(1);
     }
 
     const json = await response.json();
+    console.log(`✅ Downloaded component: ${json.name}`);
 
-    console.log(`✅ Downloaded ${json.name}.`);
-    console.log(`💾 Saving ${json.files[0].path}...`);
-
-    // Salvar o arquivo no diretório atual do usuário
-    fs.writeFileSync(
-      path.join(process.cwd(), json.files[0].path),
-      json.files[0].content
-    );
-
-    console.log("🎉 Component added successfully!");
+    const filePath = path.join(process.cwd(), json.files[0].path);
+    fs.writeFileSync(filePath, json.files[0].content);
+    console.log(`🎉 Component saved at: ${filePath}`);
   } catch (error) {
-    console.error("❌ An error occurred:", error.message);
+    console.error(`❌ An error occurred: ${error.message}`);
     process.exit(1);
   }
 }
