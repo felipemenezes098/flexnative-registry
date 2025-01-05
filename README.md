@@ -1,6 +1,6 @@
 # FlexNative Registry
 
-Public registry for FlexNative components and hooks.
+Public registry for reusable UI components and hooks for React Native.
 
 ## Usage
 
