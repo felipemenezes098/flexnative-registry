@@ -1,55 +1,332 @@
 #!/usr/bin/env node
 
-import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
+import inquirer from "inquirer";
+import { fileURLToPath } from "url";
+import fetch from "node-fetch"; // If Node ≥18, could use globalThis.fetch
 
-// Captura os argumentos
+// For ESM: simulate __dirname, __filename
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Grab the CLI arguments
 const args = process.argv.slice(2);
-console.log("Arguments received:", args);
-
 const command = args[0];
-const url = args[1];
 
-console.log("Command:", command);
-console.log("URL:", url);
-
-if (command !== "add") {
-  console.error("❌ Invalid command. Use 'add' followed by the component URL.");
-  process.exit(1);
+switch (command) {
+  case "init":
+    initCommand();
+    break;
+  case "add":
+    addCommand(args[1]);
+    break;
+  default:
+    console.error("❌ Unknown command. Available:");
+    console.error("   flexnative-cli init");
+    console.error("   flexnative-cli add <URL>");
+    process.exit(1);
 }
 
-if (!url || !/^https?:\/\/[\w.-]+/.test(url)) {
-  console.error(
-    "❌ Please provide a valid URL (e.g., https://registry.flexnative.com/c/accordion.json)."
+/**
+ * ------------------------------------------------------------
+ * COMMAND: init
+ * ------------------------------------------------------------
+ * 1. Ask for tsconfig.json path
+ * 2. Ensure alias '@/*' => e.g. './src/*'
+ * 3. Ask for a theme (default/dark/light) -> store in flexnative.json
+ * 4. Create or update flexnative.json at project root
+ * 5. Create base theme files inside the alias path:
+ *      @/constants/colors.ts
+ *      @/hooks/theme/use-color-scheme.ts
+ *      @/theme/theme-colors.ts
+ */
+async function initCommand() {
+  console.log("🔧 Running flexnative-cli init...\n");
+
+  // 1) Ask for tsconfig path
+  const { tsconfigPathInput } = await inquirer.prompt([
+    {
+      type: "input",
+      name: "tsconfigPathInput",
+      message: "Where is your tsconfig.json?",
+      default: "tsconfig.json",
+    },
+  ]);
+
+  const tsconfigFullPath = path.join(process.cwd(), tsconfigPathInput);
+  let tsconfig = {};
+
+  if (fs.existsSync(tsconfigFullPath)) {
+    tsconfig = JSON.parse(fs.readFileSync(tsconfigFullPath, "utf-8"));
+    console.log(`✅ Loaded: ${tsconfigPathInput}`);
+  } else {
+    console.log(
+      `⚠️  Could not find ${tsconfigPathInput}, creating a new one...`
+    );
+    tsconfig = { compilerOptions: { paths: {} } };
+  }
+
+  tsconfig.compilerOptions = tsconfig.compilerOptions || {};
+  tsconfig.compilerOptions.paths = tsconfig.compilerOptions.paths || {};
+
+  // 2) Check if there's already '@/*' => ["./src/*"]
+  const existingAliasArray = tsconfig.compilerOptions.paths["@/*"];
+  let defaultAlias = "./src/*";
+  if (existingAliasArray && existingAliasArray.length > 0) {
+    defaultAlias = existingAliasArray[0]; // e.g. "./src/*"
+  }
+
+  const { aliasPath } = await inquirer.prompt([
+    {
+      type: "input",
+      name: "aliasPath",
+      message: "What path should map to '@/*'?",
+      default: defaultAlias,
+    },
+  ]);
+
+  tsconfig.compilerOptions.paths["@/*"] = [aliasPath];
+
+  // 3) Ask for theme
+  const { chosenTheme } = await inquirer.prompt([
+    {
+      type: "list",
+      name: "chosenTheme",
+      message: "Which theme do you want to use for now?",
+      choices: ["default"],
+      default: "default",
+    },
+  ]);
+
+  // 4) Save tsconfig.json
+  fs.writeFileSync(
+    tsconfigFullPath,
+    JSON.stringify(tsconfig, null, 2),
+    "utf-8"
   );
-  process.exit(1);
+  console.log(`✅ Updated tsconfig at: ${tsconfigPathInput}`);
+
+  // 5) Create/Update flexnative.json
+  const flexnativePath = path.join(process.cwd(), "flexnative.json");
+  let flexnativeConfig = {};
+  if (fs.existsSync(flexnativePath)) {
+    flexnativeConfig = JSON.parse(fs.readFileSync(flexnativePath, "utf-8"));
+  }
+
+  flexnativeConfig.tsconfigPath = tsconfigPathInput;
+  flexnativeConfig.aliasPath = aliasPath;
+  flexnativeConfig.theme = chosenTheme;
+
+  fs.writeFileSync(
+    flexnativePath,
+    JSON.stringify(flexnativeConfig, null, 2),
+    "utf-8"
+  );
+  console.log(`✅ Created/updated flexnative.json at: ${flexnativePath}`);
+
+  // 6) Create theme files in the alias path
+  // For example, if aliasPath is "./src/*", baseDirRelative = "./src"
+  const baseDirRelative = aliasPath.replace(/\/\*$/, "");
+  const baseDirAbsolute = path.join(process.cwd(), baseDirRelative);
+
+  // Make sure subfolders exist
+  fs.mkdirSync(path.join(baseDirAbsolute, "constants"), { recursive: true });
+  fs.mkdirSync(path.join(baseDirAbsolute, "hooks", "theme"), {
+    recursive: true,
+  });
+  fs.mkdirSync(path.join(baseDirAbsolute, "theme"), { recursive: true });
+
+  // colors.ts
+  const colorsPath = path.join(baseDirAbsolute, "constants", "colors.ts");
+  fs.writeFileSync(colorsPath, COLORS_TS_CONTENT, "utf-8");
+  console.log(`✅ Created: ${path.relative(process.cwd(), colorsPath)}`);
+
+  // use-color-scheme.ts
+  const useColorSchemePath = path.join(
+    baseDirAbsolute,
+    "hooks",
+    "theme",
+    "use-color-scheme.ts"
+  );
+  fs.writeFileSync(useColorSchemePath, USE_COLOR_SCHEME_CONTENT, "utf-8");
+  console.log(
+    `✅ Created: ${path.relative(process.cwd(), useColorSchemePath)}`
+  );
+
+  // theme-colors.ts
+  const themeColorsPath = path.join(
+    baseDirAbsolute,
+    "theme",
+    "theme-colors.ts"
+  );
+  fs.writeFileSync(
+    themeColorsPath,
+    generateThemeColorsContent({
+      colorsImport: "@/constants/colors",
+      useColorSchemeImport: "@/hooks/theme/use-color-scheme",
+    }),
+    "utf-8"
+  );
+  console.log(`✅ Created: ${path.relative(process.cwd(), themeColorsPath)}`);
+
+  console.log("\n🎉 Init finished!");
 }
 
-async function addComponent(url) {
-  console.log(`🔄 Fetching component from ${url}...`);
+/**
+ * ------------------------------------------------------------
+ * COMMAND: add <URL>
+ * ------------------------------------------------------------
+ * 1. Read flexnative.json => get tsconfigPath, aliasPath
+ * 2. Ensure '@/*' in tsconfig => find the base path (e.g. './src')
+ * 3. Fetch the component JSON (e.g. accordion.json)
+ * 4. Create folder: @/components/ui/<componentName>
+ * 5. Write each file
+ */
+async function addCommand(url) {
+  if (!url) {
+    console.error("❌ Please provide a URL. Example:");
+    console.error(
+      "   flexnative-cli add https://registry.flexnative.com/c/accordion.json"
+    );
+    process.exit(1);
+  }
 
+  // 1) Read flexnative.json
+  const flexnativePath = path.join(process.cwd(), "flexnative.json");
+  if (!fs.existsSync(flexnativePath)) {
+    console.error(
+      "❌ flexnative.json not found. Run `flexnative-cli init` first."
+    );
+    process.exit(1);
+  }
+
+  const flexnativeConfig = JSON.parse(fs.readFileSync(flexnativePath, "utf-8"));
+  const { tsconfigPath, aliasPath } = flexnativeConfig;
+
+  if (!tsconfigPath || !aliasPath) {
+    console.error(
+      "❌ Missing config in flexnative.json. Run `flexnative-cli init` again."
+    );
+    process.exit(1);
+  }
+
+  // 2) Read tsconfig.json
+  const tsconfigFullPath = path.join(process.cwd(), tsconfigPath);
+  if (!fs.existsSync(tsconfigFullPath)) {
+    console.error(`❌ Could not find tsconfig at: ${tsconfigFullPath}`);
+    process.exit(1);
+  }
+
+  const tsconfig = JSON.parse(fs.readFileSync(tsconfigFullPath, "utf-8"));
+  const userAliasArray = tsconfig?.compilerOptions?.paths?.["@/*"] ?? [];
+  if (!userAliasArray.length) {
+    console.error(
+      "❌ '@/*' was not found in your tsconfig. Run `flexnative-cli init`."
+    );
+    process.exit(1);
+  }
+
+  // e.g. './src/*' => './src'
+  const baseDirRelative = userAliasArray[0].replace(/\/\*$/, "");
+  const baseDirAbsolute = path.join(process.cwd(), baseDirRelative);
+
+  // 3) Fetch component JSON
+  console.log(`🔄 Fetching component from ${url}...`);
+  let componentJson;
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.error(
-        `❌ Failed to fetch the component. HTTP Status: ${response.status}`
-      );
-      process.exit(1);
+      throw new Error(`Request failed. Status: ${response.status}`);
     }
-
-    const json = await response.json();
-    console.log("Response JSON:", json);
-
-    console.log(`✅ Downloaded component: ${json.name}`);
-
-    const filePath = path.join(process.cwd(), json.files[0].path);
-    fs.writeFileSync(filePath, json.files[0].content);
-    console.log(`🎉 Component saved at: ${filePath}`);
-  } catch (error) {
-    console.error(`❌ An error occurred: ${error.message}`);
+    componentJson = await response.json();
+  } catch (err) {
+    console.error(`❌ Error fetching component: ${err.message}`);
     process.exit(1);
   }
+
+  const componentName = componentJson.name || "unnamed-component";
+  console.log(`✅ Downloaded component: ${componentName}`);
+
+  // 4) Create folder => @/components/ui/<componentName>
+  const componentDir = path.join(
+    baseDirAbsolute,
+    "components",
+    "ui",
+    componentName
+  );
+  fs.mkdirSync(componentDir, { recursive: true });
+
+  // 5) Save each file
+  if (!componentJson.files || !Array.isArray(componentJson.files)) {
+    console.error("❌ Component JSON does not contain a valid 'files' array.");
+    process.exit(1);
+  }
+
+  for (const file of componentJson.files) {
+    // file.path (e.g. "accordion.tsx")
+    const filePath = path.join(componentDir, file.path);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, file.content, "utf-8");
+    console.log(`📄 Saved: ${path.relative(process.cwd(), filePath)}`);
+  }
+
+  console.log("\n🎉 Done adding component!");
 }
 
-addComponent(url);
+/** ------------------------------------------------------------------
+ *  THEME FILE CONTENTS
+ * ------------------------------------------------------------------ **/
+
+// colors.ts
+const COLORS_TS_CONTENT = `export default {
+  light: {
+    text: "#000",
+    background: "#ffffff",
+    tint: "#2f95dc",
+    tabIconDefault: "#ccc",
+    tabIconSelected: "#2f95dc",
+    "muted-foreground": "hsl(240, 3.8%, 46.1%)",
+    primary: "hsl(240, 5.9%, 10%)",
+    "primary-foreground": "#fff",
+    muted: "hsl(240, 4.8%, 95.9%)",
+    destructive: "hsl(0, 84.2%, 60.2%)",
+    "destructive-foreground": "#fff",
+    border: "hsl(240, 5.9%, 90%)",
+    input: "hsl(240, 5.9%, 90%)",
+    "chart-1": "hsl(240, 5.9%, 10%)"
+  },
+  dark: {
+    text: "#ffffff",
+    background: "#000",
+    tint: "#fff",
+    tabIconDefault: "#ccc",
+    tabIconSelected: "#fff",
+    "muted-foreground": "hsl(240, 5%, 64.9%)",
+    primary: "hsl(0, 0%, 98%)",
+    "primary-foreground": "#000",
+    muted: "hsl(240, 3.7%, 15.9%)",
+    destructive: "hsl(0, 62.8%, 30.6%)",
+    "destructive-foreground": "#fff",
+    border: "hsl(240, 3.7%, 15.9%)",
+    input: "hsl(240, 3.7%, 15.9%)",
+    "chart-1": "hsl(240, 3.7%, 90.9%)"
+  }
+};
+`;
+
+// use-color-scheme.ts
+const USE_COLOR_SCHEME_CONTENT = `export { useColorScheme } from 'react-native';
+`;
+
+// theme-colors.ts
+function generateThemeColorsContent({ colorsImport, useColorSchemeImport }) {
+  return `import Colors from "${colorsImport}";
+import { useColorScheme } from "${useColorSchemeImport}";
+
+export function getThemeColors() {
+  const theme = useColorScheme() ?? "light";
+  return Colors[theme];
+}
+`;
+}

@@ -6,6 +6,7 @@
     "flexnative-cli": "./index.js"
   },
   "dependencies": {
+    "inquirer": "^12.3.0",
     "node-fetch": "^3.3.2"
   },
   "type": "module",
