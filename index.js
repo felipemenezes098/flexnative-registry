@@ -6,8 +6,13 @@ import path from "path";
 
 // Captura os argumentos
 const args = process.argv.slice(2);
+console.log("Arguments received:", args);
+
 const command = args[0];
 const url = args[1];
+
+console.log("Command:", command);
+console.log("URL:", url);
 
 if (command !== "add") {
   console.error("❌ Invalid command. Use 'add' followed by the component URL.");
@@ -34,6 +39,8 @@ async function addComponent(url) {
     }
 
     const json = await response.json();
+    console.log("Response JSON:", json);
+
     console.log(`✅ Downloaded component: ${json.name}`);
 
     const filePath = path.join(process.cwd(), json.files[0].path);
