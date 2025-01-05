@@ -1,6 +1,6 @@
 {
   "name": "flexnative-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI for adding components and hooks from the FlexNative registry",
   "bin": {
     "flexnative-cli": "./index.js"
