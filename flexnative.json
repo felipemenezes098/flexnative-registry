@@ -1,5 +1,0 @@
-{
-  "tsconfigPath": "tsconfig.json",
-  "aliasPath": "./src/*",
-  "theme": "default"
-}
