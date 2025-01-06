@@ -4,13 +4,11 @@ import fs from "fs";
 import path from "path";
 import inquirer from "inquirer";
 import { fileURLToPath } from "url";
-import fetch from "node-fetch"; // Se Node >=18, poderia usar fetch nativo
+import fetch from "node-fetch";
 
-// Ajuste ESM (simular __dirname, __filename)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Lê argumentos
 const args = process.argv.slice(2);
 const command = args[0];
 
@@ -41,7 +39,6 @@ switch (command) {
 async function initCommand() {
   console.log("🔧 Running flexnative-cli init...\n");
 
-  // 1) Perguntar caminho do tsconfig
   const { tsconfigPathInput } = await inquirer.prompt([
     {
       type: "input",
@@ -67,7 +64,6 @@ async function initCommand() {
   tsconfig.compilerOptions = tsconfig.compilerOptions || {};
   tsconfig.compilerOptions.paths = tsconfig.compilerOptions.paths || {};
 
-  // 2) Check alias for '@/*'
   const existingAliasArray = tsconfig.compilerOptions.paths["@/*"];
   let defaultAlias = "./src/*";
   if (existingAliasArray && existingAliasArray.length > 0) {
@@ -85,7 +81,6 @@ async function initCommand() {
 
   tsconfig.compilerOptions.paths["@/*"] = [aliasPath];
 
-  // 3) Ask for theme
   const { chosenTheme } = await inquirer.prompt([
     {
       type: "list",
@@ -96,7 +91,6 @@ async function initCommand() {
     },
   ]);
 
-  // 4) Save tsconfig
   fs.writeFileSync(
     tsconfigFullPath,
     JSON.stringify(tsconfig, null, 2),
@@ -104,7 +98,6 @@ async function initCommand() {
   );
   console.log(`✅ Updated tsconfig at: ${tsconfigPathInput}`);
 
-  // 5) Create/Update flexnative.json
   const flexnativePath = path.join(process.cwd(), "flexnative.json");
   let flexnativeConfig = {};
   if (fs.existsSync(flexnativePath)) {
@@ -122,23 +115,19 @@ async function initCommand() {
   );
   console.log(`✅ Created/updated flexnative.json at: ${flexnativePath}`);
 
-  // 6) Create base theme files
   const baseDirRelative = aliasPath.replace(/\/\*$/, ""); // e.g. './src'
   const baseDirAbsolute = path.join(process.cwd(), baseDirRelative);
 
-  // Make subfolders
   fs.mkdirSync(path.join(baseDirAbsolute, "constants"), { recursive: true });
   fs.mkdirSync(path.join(baseDirAbsolute, "hooks", "theme"), {
     recursive: true,
   });
   fs.mkdirSync(path.join(baseDirAbsolute, "theme"), { recursive: true });
 
-  // colors.ts
   const colorsPath = path.join(baseDirAbsolute, "constants", "colors.ts");
   fs.writeFileSync(colorsPath, COLORS_TS_CONTENT, "utf-8");
   console.log(`✅ Created: ${path.relative(process.cwd(), colorsPath)}`);
 
-  // use-color-scheme.ts
   const useColorSchemePath = path.join(
     baseDirAbsolute,
     "hooks",
@@ -150,7 +139,6 @@ async function initCommand() {
     `✅ Created: ${path.relative(process.cwd(), useColorSchemePath)}`
   );
 
-  // theme-colors.ts
   const themeColorsPath = path.join(
     baseDirAbsolute,
     "theme",
@@ -187,7 +175,6 @@ async function addCommand(url) {
     process.exit(1);
   }
 
-  // 1) flexnative.json
   const flexnativePath = path.join(process.cwd(), "flexnative.json");
   if (!fs.existsSync(flexnativePath)) {
     console.error(
@@ -205,7 +192,6 @@ async function addCommand(url) {
     process.exit(1);
   }
 
-  // 2) tsconfig
   const tsconfigFullPath = path.join(process.cwd(), tsconfigPath);
   if (!fs.existsSync(tsconfigFullPath)) {
     console.error(`❌ Could not find tsconfig at: ${tsconfigFullPath}`);
@@ -220,11 +206,9 @@ async function addCommand(url) {
     process.exit(1);
   }
 
-  // e.g. './src/*' -> './src'
   const baseDirRelative = userAliasArray[0].replace(/\/\*$/, "");
   const baseDirAbsolute = path.join(process.cwd(), baseDirRelative);
 
-  // 3) Fetch component JSON
   console.log(`🔄 Fetching component from ${url}...`);
   let componentJson;
   try {
@@ -241,18 +225,15 @@ async function addCommand(url) {
   const componentName = componentJson.name || "unnamed-component";
   console.log(`✅ Downloaded component: ${componentName}`);
 
-  // 4) We'll place files in @/components/ui/ (no subfolder)
   const uiFolder = path.join(baseDirAbsolute, "components", "ui");
   fs.mkdirSync(uiFolder, { recursive: true });
 
-  // 5) Save each file
   if (!componentJson.files || !Array.isArray(componentJson.files)) {
     console.error("❌ Component JSON does not contain a valid 'files' array.");
     process.exit(1);
   }
 
   for (const file of componentJson.files) {
-    // If file.path is "accordion.tsx", we'll have @/components/ui/accordion.tsx
     const filePath = path.join(uiFolder, file.path);
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, file.content, "utf-8");
