@@ -1,0 +1,18 @@
+{
+  "name": "text-input",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["react", "react-native"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "text-input.tsx",
+      "content": "import * as React from \"react\";\nimport { TextInput as RNTextInput, StyleSheet } from \"react-native\";\nimport { getThemeColors } from \"@/theme/theme-colors\";\n\nexport const TextInput = React.forwardRef<\n  RNTextInput,\n  React.ComponentPropsWithoutRef<typeof RNTextInput>\n>(({ style, editable = true, ...props }, ref) => {\n  const colors = getThemeColors();\n\n  return (\n    <RNTextInput\n      ref={ref}\n      style={[\n        styles.input,\n        {\n          borderColor: colors.border,\n          backgroundColor: colors.background,\n          color: colors.text,\n          opacity: editable ? 1 : 0.6,\n        },\n        style,\n      ]}\n      placeholderTextColor={colors[\"muted-foreground\"]}\n      editable={editable}\n      {...props}\n    />\n  );\n});\n\nTextInput.displayName = \"TextInput\";\n\nconst styles = StyleSheet.create({\n  input: {\n    borderWidth: 1,\n    padding: 12,\n    borderRadius: 8,\n    fontSize: 16,\n  },\n});"
+    }
+  ]
+}

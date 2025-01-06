@@ -1,0 +1,18 @@
+{
+  "name": "tabs",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["react", "react-native"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "tabs.tsx",
+      "content": "import React, { useState, useContext } from \"react\";\nimport {\n  View,\n  Text,\n  Pressable,\n  StyleSheet,\n  ViewProps,\n  TextProps,\n  TouchableOpacity,\n} from \"react-native\";\nimport { getThemeColors } from \"@/theme/theme-colors\";\n\nexport const TabsContext = React.createContext({\n  activeTab: \"\",\n  setActiveTab: (value: string) => {},\n});\n\nexport const Tabs: React.FC<{\n  defaultValue: string;\n  children: React.ReactNode;\n  style?: ViewProps[\"style\"];\n  onValueChange?: (value: string) => void;\n}> = ({ defaultValue, children, style, onValueChange }) => {\n  const [activeTab, setActiveTab] = useState(defaultValue);\n\n  const handleChange = (value: string) => {\n    setActiveTab(value);\n    if (onValueChange) onValueChange(value);\n  };\n\n  return (\n    <TabsContext.Provider value={{ activeTab, setActiveTab: handleChange }}>\n      <View style={style}>{children}</View>\n    </TabsContext.Provider>\n  );\n};\n\nexport const TabsList: React.FC<{\n  children: React.ReactNode;\n  style?: ViewProps[\"style\"];\n}> = ({ children, style }) => {\n  const colors = getThemeColors();\n  return (\n    <View style={[styles.tabsList, { backgroundColor: colors.muted }, style]}>\n      {children}\n    </View>\n  );\n};\n\nexport const TabsTrigger: React.FC<\n  {\n    value: string;\n    children: React.ReactNode;\n    style?: ViewProps[\"style\"];\n    textStyle?: TextProps[\"style\"];\n    isTouchable?: boolean;\n    disabled?: boolean;\n  } & ViewProps\n> = ({\n  value,\n  children,\n  style,\n  textStyle,\n  isTouchable,\n  disabled,\n  ...props\n}) => {\n  const { activeTab, setActiveTab } = useContext(TabsContext);\n  const isActive = activeTab === value;\n  const colors = getThemeColors();\n\n  return (\n    <TouchableOpacity\n      {...props}\n      onPress={() => {\n        if (!disabled) setActiveTab(value);\n      }}\n      style={[\n        styles.tabTrigger,\n        isActive && {\n          borderColor: colors[\"primary-foreground\"],\n          backgroundColor: colors.background,\n        },\n        disabled && {\n          opacity: 0.5,\n        },\n        style,\n      ]}\n      activeOpacity={isTouchable ? 0.5 : 1}\n      disabled={disabled}\n    >\n      <Text\n        style={[\n          styles.tabText,\n          { color: colors[\"muted-foreground\"] },\n          isActive && {\n            color: colors[\"primary\"],\n            fontWeight: \"bold\",\n          },\n          textStyle,\n        ]}\n      >\n        {children}\n      </Text>\n    </TouchableOpacity>\n  );\n};\n\nexport const TabsContent: React.FC<{\n  value: string;\n  children: React.ReactNode;\n  style?: ViewProps[\"style\"];\n}> = ({ value, children, style }) => {\n  const { activeTab } = useContext(TabsContext);\n\n  if (activeTab !== value) return null;\n\n  return <View style={style}>{children}</View>;\n};\n\nconst styles = StyleSheet.create({\n  tabsList: {\n    flexDirection: \"row\",\n    marginBottom: 16,\n    borderRadius: 8,\n    padding: 4,\n    alignSelf: \"center\",\n    width: \"100%\",\n  },\n  tabTrigger: {\n    flex: 1,\n    justifyContent: \"center\",\n    alignItems: \"center\",\n    paddingVertical: 8,\n    paddingHorizontal: 16,\n    borderBottomWidth: 2,\n    borderColor: \"transparent\",\n    borderRadius: 8,\n  },\n  tabText: {\n    fontSize: 14,\n    fontWeight: \"500\",\n  },\n});"
+    }
+  ]
+}

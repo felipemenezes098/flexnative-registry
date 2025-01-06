@@ -1,0 +1,18 @@
+{
+  "name": "scroll-view",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["react", "react-native"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "scroll-view.tsx",
+      "content": "import * as React from \"react\";\nimport {\n  ScrollView as RNScrollView,\n  StyleSheet,\n  ScrollViewProps as RNScrollViewProps,\n} from \"react-native\";\n\nexport type ScrollViewProps = RNScrollViewProps & {\n  contentContainerStyle?: RNScrollViewProps[\"contentContainerStyle\"];\n};\n\nexport const ScrollView = React.forwardRef<RNScrollView, ScrollViewProps>(\n  ({ style, contentContainerStyle, ...props }, ref) => {\n    return (\n      <RNScrollView\n        ref={ref}\n        showsVerticalScrollIndicator={false}\n        keyboardShouldPersistTaps=\"handled\"\n        style={[styles.scrollView, style]}\n        contentContainerStyle={[styles.scrollContainer, contentContainerStyle]}\n        {...props}\n      />\n    );\n  }\n);\n\nScrollView.displayName = \"ScrollView\";\n\nconst styles = StyleSheet.create({\n  scrollView: {\n    flex: 1,\n  },\n  scrollContainer: {\n    flexGrow: 1,\n  },\n});"
+    }
+  ]
+}

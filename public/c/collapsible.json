@@ -1,0 +1,18 @@
+{
+  "name": "collapsible",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["react", "react-native"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "collapsible.tsx",
+      "content": "import React, { createContext, useContext, useState, ReactNode } from \"react\";\nimport {\n  Pressable,\n  View,\n  StyleSheet,\n  StyleProp,\n  ViewStyle,\n  GestureResponderEvent,\n} from \"react-native\";\n\ninterface CollapsibleContextType {\n  open: boolean;\n  toggle: () => void;\n  disabled: boolean;\n}\n\ninterface RootProps {\n  children: ReactNode;\n  open?: boolean;\n  defaultOpen?: boolean;\n  onOpenChange?: (open: boolean) => void;\n  disabled?: boolean;\n  style?: StyleProp<ViewStyle>;\n}\n\ninterface TriggerProps {\n  children: ReactNode;\n  disabled?: boolean;\n  onPress?: (event: GestureResponderEvent) => void;\n  style?: StyleProp<ViewStyle>;\n}\n\ninterface ContentProps {\n  children: ReactNode;\n  forceMount?: boolean;\n  style?: StyleProp<ViewStyle>;\n}\n\nconst CollapsibleContext = createContext<CollapsibleContextType | null>(null);\n\nconst useCollapsibleContext = () => {\n  const context = useContext(CollapsibleContext);\n  if (!context) {\n    throw new Error(\n      \"Collapsible compound components must be used within a CollapsibleRoot\"\n    );\n  }\n  return context;\n};\n\nexport const CollapsibleRoot: React.FC<RootProps> = ({\n  children,\n  open: controlledOpen,\n  defaultOpen = false,\n  onOpenChange,\n  disabled = false,\n  style,\n}) => {\n  const [openState, setOpenState] = useState(defaultOpen);\n  const isControlled = controlledOpen !== undefined;\n  const open = isControlled ? controlledOpen : openState;\n\n  const toggle = () => {\n    if (disabled) return;\n    if (!isControlled) {\n      setOpenState(!open);\n    }\n    onOpenChange?.(!open);\n  };\n\n  return (\n    <CollapsibleContext.Provider value={{ open, toggle, disabled }}>\n      <View style={style}>{children}</View>\n    </CollapsibleContext.Provider>\n  );\n};\n\nexport const CollapsibleTrigger: React.FC<TriggerProps> = ({\n  children,\n  disabled = false,\n  onPress,\n  style,\n}) => {\n  const { open, toggle } = useCollapsibleContext();\n\n  const handlePress = (event: GestureResponderEvent) => {\n    if (disabled) return;\n    toggle();\n    onPress?.(event);\n  };\n\n  return (\n    <Pressable\n      onPress={handlePress}\n      style={[styles.trigger, style]}\n      accessibilityState={{ expanded: open, disabled }}\n    >\n      {children}\n    </Pressable>\n  );\n};\n\nexport const CollapsibleContent: React.FC<ContentProps> = ({\n  children,\n  forceMount = false,\n  style,\n}) => {\n  const { open } = useCollapsibleContext();\n\n  if (!forceMount && !open) {\n    return null;\n  }\n\n  return (\n    <View style={styles.contentWrapper}>\n      <View style={[styles.content, style]}>{children}</View>\n    </View>\n  );\n};\n\nconst styles = StyleSheet.create({\n  trigger: {\n    paddingVertical: 10,\n  },\n  contentWrapper: {\n    overflow: \"visible\",\n  },\n  content: {\n    paddingVertical: 10,\n  },\n});"
+    }
+  ]
+}

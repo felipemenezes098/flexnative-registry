@@ -1,0 +1,18 @@
+{
+  "name": "card",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["react", "react-native"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "card.tsx",
+      "content": "import React from \"react\";\nimport {\n  View,\n  Text,\n  StyleSheet,\n  ViewProps,\n  TouchableOpacity,\n  TouchableOpacityProps,\n} from \"react-native\";\nimport { getThemeColors } from \"@/theme/theme-colors\";\nimport { TextProps } from \"react-native\";\n\ntype CardProps = TouchableOpacityProps & {\n  isTouchable?: boolean;\n  onPress?: () => void;\n};\n\nexport const Card: React.FC<CardProps> = ({\n  style,\n  isTouchable = false,\n  ...props\n}) => {\n  const colors = getThemeColors();\n  return (\n    <TouchableOpacity\n      style={[\n        styles.card,\n        {\n          backgroundColor: colors.background,\n          borderColor: colors.border,\n        },\n        style,\n      ]}\n      activeOpacity={isTouchable ? 0.5 : 1}\n      {...props}\n    />\n  );\n};\n\nexport const CardHeader: React.FC<ViewProps> = ({ style, ...props }) => {\n  return <View style={[styles.header, style]} {...props} />;\n};\n\nexport const CardTitle: React.FC<TextProps> = ({ style, ...props }) => {\n  const colors = getThemeColors();\n  return (\n    <Text style={[styles.title, { color: colors.text }, style]} {...props} />\n  );\n};\n\nexport const CardDescription: React.FC<TextProps> = ({ style, ...props }) => {\n  const colors = getThemeColors();\n  return (\n    <Text\n      style={[styles.description, { color: colors[\"muted-foreground\"] }, style]}\n      {...props}\n    />\n  );\n};\n\nexport const CardContent: React.FC<ViewProps> = ({ style, ...props }) => {\n  return <View style={[styles.content, style]} {...props} />;\n};\n\nexport const CardFooter: React.FC<ViewProps> = ({ style, ...props }) => {\n  return <View style={[styles.footer, style]} {...props} />;\n};\n\nconst styles = StyleSheet.create({\n  card: {\n    borderRadius: 12,\n    borderWidth: 1,\n    shadowColor: \"#000\",\n    shadowOffset: { width: 0, height: 2 },\n    shadowOpacity: 0.1,\n    shadowRadius: 4,\n    elevation: 3,\n  },\n  header: {\n    padding: 16,\n    flexDirection: \"column\",\n    justifyContent: \"center\",\n  },\n  title: {\n    fontSize: 18,\n    fontWeight: \"bold\",\n  },\n  description: {\n    fontSize: 14,\n    marginTop: 4,\n  },\n  content: {\n    paddingHorizontal: 16,\n    paddingBottom: 16,\n  },\n  footer: {\n    paddingBottom: 16,\n    paddingHorizontal: 16,\n    flexDirection: \"row\",\n    justifyContent: \"flex-end\",\n  },\n});"
+    }
+  ]
+}

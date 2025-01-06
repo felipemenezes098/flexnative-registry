@@ -1,0 +1,18 @@
+{
+  "name": "separator",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["react", "react-native"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "separator.tsx",
+      "content": "import { getThemeColors } from \"@/theme/theme-colors\";\nimport * as React from \"react\";\nimport { View, StyleSheet, StyleProp, ViewStyle } from \"react-native\";\n\ninterface SeparatorProps {\n  orientation?: \"horizontal\" | \"vertical\";\n  decorative?: boolean;\n  style?: StyleProp<ViewStyle>;\n}\n\nconst Separator = React.forwardRef<View, SeparatorProps>(\n  ({ orientation = \"horizontal\", decorative = true, style, ...props }, ref) => {\n    const colors = getThemeColors();\n\n    return (\n      <View\n        ref={ref}\n        role={decorative ? \"presentation\" : \"separator\"}\n        style={[\n          { backgroundColor: colors[\"border\"] },\n          orientation === \"horizontal\" ? styles.horizontal : styles.vertical,\n          style,\n        ]}\n        {...props}\n      />\n    );\n  }\n);\n\nSeparator.displayName = \"Separator\";\n\nconst styles = StyleSheet.create({\n  horizontal: {\n    height: 1,\n    width: \"100%\",\n  },\n  vertical: {\n    width: 1,\n    height: \"100%\",\n  },\n});\n\nexport { Separator };"
+    }
+  ]
+}

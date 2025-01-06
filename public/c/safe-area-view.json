@@ -1,0 +1,18 @@
+{
+  "name": "safe-area-view",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["react", "react-native"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "safe-area-view.tsx",
+      "content": "import React from \"react\";\nimport { SafeAreaView as RNSafeAreaView, StyleSheet } from \"react-native\";\nimport { getThemeColors } from \"@/theme/theme-colors\";\n\nexport type SafeAreaViewProps = React.ComponentProps<typeof RNSafeAreaView>;\n\nexport const SafeAreaView = React.forwardRef<RNSafeAreaView, SafeAreaViewProps>(\n  ({ style, ...props }, ref) => {\n    const colors = getThemeColors();\n    return (\n      <RNSafeAreaView\n        ref={ref}\n        style={[\n          styles.container,\n          { backgroundColor: colors.background },\n          style,\n        ]}\n        {...props}\n      />\n    );\n  }\n);\n\nSafeAreaView.displayName = \"SafeAreaView\";\n\nconst styles = StyleSheet.create({\n  container: {\n    flex: 1,\n  },\n});"
+    }
+  ]
+}

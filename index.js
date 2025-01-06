@@ -91,7 +91,7 @@ async function initCommand() {
       type: "list",
       name: "chosenTheme",
       message: "Which theme do you want to use for now?",
-      choices: ["default", "dark", "light"],
+      choices: ["default"],
       default: "default",
     },
   ]);

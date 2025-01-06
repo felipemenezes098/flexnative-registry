@@ -1,0 +1,18 @@
+{
+  "name": "view",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["react", "react-native"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "view.tsx",
+      "content": "import * as React from \"react\";\nimport {\n  View as RNView,\n  StyleSheet,\n  ViewProps as RNViewProps,\n} from \"react-native\";\n\nexport type ViewProps = RNViewProps;\n\nexport const View = React.forwardRef<RNView, ViewProps>(\n  ({ style, ...props }, ref) => {\n    return <RNView ref={ref} style={[styles.view, style]} {...props} />;\n  }\n);\n\nView.displayName = \"View\";\n\nconst styles = StyleSheet.create({\n  view: {\n    padding: 0,\n  },\n});"
+    }
+  ]
+}

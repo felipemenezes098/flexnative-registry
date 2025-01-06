@@ -1,11 +1,22 @@
 # FlexNative Registry
 
-Public registry for reusable UI components and hooks for React Native.
+A public registry for reusable UI components and hooks tailored for React Native, inspired by modular and scalable design systems.
 
-## Usage
+This registry provides pre-built, customizable components designed to save time and ensure consistency across projects.
 
-You can add components to your project using the FlexNative CLI:
+## Features
+
+- **Reusable Components**: Ready-to-use UI components following best practices.
+- **Customizable Themes**: Easily adaptable to light and dark themes using `getThemeColors`.
+- **TypeScript Support**: Fully typed components for better developer experience.
+- **Scalable Design**: Ideal for creating consistent UIs across projects.
+
+---
+
+## Installation
+
+Integrate components into your project effortlessly using the FlexNative CLI:
 
 ```bash
-npx flexnative add "https://registry.flexnative.com/c/accordion.json"
+npx flexnative add "https://registry.flexnative.com/c/[component-name].json"
 ```
