@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlexNative CLI Tester</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      textarea {
+        width: 100%;
+        height: 200px;
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #log {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .log-success {
+        color: green;
+      }
+      .log-error {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>FlexNative CLI</h1>
+    <p>Paste your component JSON below:</p>
+    <textarea
+      id="jsonInput"
+      placeholder='{"name": "test", "dependencies": ["react", "react-dom"], "files": []}'
+    ></textarea>
+    <button id="testButton">Test Add Command</button>
+
+    <div id="log"></div>
+
+    <script>
+      document
+        .getElementById("testButton")
+        .addEventListener("click", async () => {
+          const jsonInput = document.getElementById("jsonInput").value;
+          const logDiv = document.getElementById("log");
+          logDiv.innerHTML = ""; // Clear logs
+
+          try {
+            const componentJson = JSON.parse(jsonInput);
+
+            if (!componentJson.dependencies || !componentJson.files) {
+              throw new Error(
+                "Invalid JSON structure. Must include 'dependencies' and 'files'."
+              );
+            }
+
+            logDiv.innerHTML += `<p>🔄 Fetching component...</p>`;
+            logDiv.innerHTML += `<p>📦 Dependencies: ${componentJson.dependencies.join(
+              ", "
+            )}</p>`;
+
+            for (const dep of componentJson.dependencies) {
+              logDiv.innerHTML += `<p>📦 Installing ${dep}...</p>`;
+              // Simulate async installation (replace this with real logic later)
+              await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
+              logDiv.innerHTML += `<p class="log-success">✅ ${dep} installed successfully!</p>`;
+            }
+
+            logDiv.innerHTML += `<p class="log-success">🎉 Done adding component and installing dependencies!</p>`;
+          } catch (error) {
+            logDiv.innerHTML += `<p class="log-error">❌ ${error.message}</p>`;
+          }
+        });
+    </script>
+  </body>
+</html>

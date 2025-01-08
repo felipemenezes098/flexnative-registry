@@ -1,0 +1,18 @@
+{
+  "name": "simple-component-with-date",
+  "type": "registry:ui",
+  "registryDependencies": [],
+  "dependencies": ["date-fns"],
+  "devDependencies": [],
+  "tailwind": {},
+  "cssVars": {
+    "light": {},
+    "dark": {}
+  },
+  "files": [
+    {
+      "path": "simple-component.tsx",
+      "content": "import React from 'react';\nimport { format } from 'date-fns';\n\nexport const SimpleComponent = () => {\n  const now = new Date();\n  const formattedDate = format(now, 'dd/MM/yyyy');\n\n  return (\n    <div>\n      <h1>Current Date:</h1>\n      <p>{formattedDate}</p>\n    </div>\n  );\n};"
+    }
+  ]
+}
