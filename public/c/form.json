@@ -2,8 +2,8 @@
   "name": "form",
   "type": "registry:ui",
   "registryDependencies": [],
-  "dependencies": ["react", "react-native", "react-hook-form"],
-  "devDependencies": [],
+  "dependencies": ["react-hook-form", "zod"],
+  "devDependencies": ["@hookform/resolvers"],
   "tailwind": {},
   "cssVars": {
     "light": {},

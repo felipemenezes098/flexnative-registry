@@ -2,7 +2,7 @@
   "name": "view",
   "type": "registry:ui",
   "registryDependencies": [],
-  "dependencies": ["react", "react-native"],
+  "dependencies": [],
   "devDependencies": [],
   "tailwind": {},
   "cssVars": {
