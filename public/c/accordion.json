@@ -2,7 +2,7 @@
   "name": "accordion",
   "type": "registry:ui",
   "registryDependencies": [],
-  "dependencies": ["react", "react-native", "react-native-animated"],
+  "dependencies": [],
   "devDependencies": [],
   "tailwind": {},
   "cssVars": {
